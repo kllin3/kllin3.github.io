@@ -39,6 +39,7 @@
 $ sudo apt update
 $ sudo apt upgrade
 $ sudo apt-get install git curl zip unzip python
+$ sudo apt-get install pkg-config g++ zlib1g-dev
 ```
 #### Java Dependency
 ```
@@ -54,5 +55,102 @@ $ sudo add-apt-repository ppa:openjdk-r/ppa
 $ sudo apt-get update 
 $ sudo apt-get install openjdk-8-jdk
 ```
-
+#### 安裝Bazel
+```
+$ wget -c https://github.com/bazelbuild/bazel/releases/download/0.22.0/bazel-0.22.0-installer-linux-x86_64.sh
+$ chmod +x bazel-0.22.0-installer-linux-x86_64.sh
+$ ./bazel-0.22.0-installer-linux-x86_64.sh --user
+```
+把$HOME/bin加入~/.bashrc檔案的default path中
+```
+$ export PATH = "$PATH:$HOME/bin"
+```
+#### 安裝ONOS 1.15版本
+```
+$ cd ~/ && git clone https://gerrit.onosproject.org/onos
+$ cd onos && git checkout onos-1.15
+```
+#### Build ONOS
+```
+$ bazel build onos
+```
 ### Mininet 安裝
+#### 從git上面clone下來並安裝
+```
+$ cd ~/ && git clone https://github.com/mininet/mininet
+$ cd mininet 
+$ util/install.sh -a
+```
+
+## 執行ONOS + Mininet 
+
+### 執行ONOS(常用)
+```
+$ bazel run onos-local -- clean debug
+```
+### 結束執行ONOS
+```
+<Ctrl + C>
+```
+### 登入ONOS CLI
+```
+$ tools/test/bin/onos localhost
+```
+### 開啟/關閉app功能(常用)
+```
+onos> app activate app_name
+onos> app deactivate app_name
+
+e.g.
+onos> app activate org.onosproject.fwd
+```
+### ONOS GUI(會使用ONOS的主要原因)
+在瀏覽器中打開 http://localhost:8181/onos/gui  
+User: onos  
+PWD: rocks  
+![img](https://i.imgur.com/i2Njhts.jpg)    
+按下h可以看到所有的host devices(如果沒有請在mininet中使用pingall指令)  
+
+
+
+### 執行mininet create topology
+```
+e.g. linear
+$ sudo mn --topo=linear,3 --controller=remote,ip=127.0.0.1:6653
+e.g. 兩層tree
+$ sudo mn --topo=tree,2 --controller=remote,ip=127.0.0.1:6653
+e.g. custom topology: Python script
+$ sudo mn --custom=test.py --topo=mytopo --controller=remote,ip=127.0.0.1:6653
+```  
+Sample topology script(test.py):  
+```py
+from mininet.topo import Topo
+
+class MyTopo(Topo):
+    def __init__(self):
+        Topo.__init__(self)
+        
+        # Add host
+        h1 = self.addHost("h1")
+        h2 = self.addHost("h2")
+        
+        # Add switches
+        s1 = self.addSwitch("s1")
+        
+        # Add links
+        self.addLink(h1,s1)
+        self.addLink(h2,s1)
+        
+ topos = {"mytopo": MyTopo}
+```
+
+
+### 結束mininet執行
+```
+mininet> exit
+```
+### 清環境設定(常用)
+```
+$ sudo mn -c
+```
+
